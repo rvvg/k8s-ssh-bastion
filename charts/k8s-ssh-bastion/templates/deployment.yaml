@@ -23,9 +23,16 @@ spec:
             - /bin/bash
             - -ec
             - |
-              apt-get update && apt-get install -y openssh-server zsh
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update && apt-get install \
+                -o Dpkg::Options::="--force-confdef" \
+                -o Dpkg::Options::="--force-confold" \
+                -y --no-install-recommends openssh-server
               cd /etc/ssh
               
+              # Generate missing keys (ephemeral, e.g. Ed25519 which Helm cannot generate correctly)
+              ssh-keygen -A
+
               # Ensure public keys exist (for mounted keys)
               for ssh_key in /etc/ssh/ssh_host_*_key; do
                 if [ ! -f ${ssh_key}.pub ]; then
@@ -76,10 +83,12 @@ spec:
             mountPath: /etc/ssh/ssh_host_ecdsa_key
             subPath: ssh_host_ecdsa_key
             readOnly: true
+          {{- if .Values.hostKeys.ed25519 }}
           - name: host-keys
             mountPath: /etc/ssh/ssh_host_ed25519_key
             subPath: ssh_host_ed25519_key
             readOnly: true
+          {{- end }}
       hostNetwork: {{ .Values.hostNetwork }}
       {{- with .Values.dnsConfig }}
       dnsConfig: {{ . | toJson }}
