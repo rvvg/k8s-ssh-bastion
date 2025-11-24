@@ -101,7 +101,7 @@ ssh:
     #MaxSessions 10
 
     PubkeyAuthentication yes
-    AuthorizedKeysFile     /etc/ssh/authorized_keys/%u
+    AuthorizedKeysFile     .ssh/authorized_keys
 
     PasswordAuthentication no
     PermitEmptyPasswords no

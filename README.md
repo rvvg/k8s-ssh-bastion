@@ -88,7 +88,7 @@ service:
 
 This chart deploys a Deployment using the standard `ubuntu:24.04` image.
 Upon startup, the pod executes an entrypoint script that:
-1.  Installs `openssh-server` and `zsh` via `apt-get`.
+1.  Installs `openssh-server` via `apt-get`.
 2.  Generates ephemeral host keys if they are not provided via Secret.
 3.  Creates user accounts based on the provided `users` configuration.
 4.  Starts `sshd`.

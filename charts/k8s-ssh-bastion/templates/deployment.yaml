@@ -45,8 +45,12 @@ spec:
               for i in /etc/ssh/authorized_keys/*; do
                 if [ -f "$i" ]; then
                   username=$(basename "$i")
-                  useradd -rm -d /home/$username -s /bin/bash -g root -u $((USER_UID++)) $username
-                  chown -R $username:nogroup /home/$username
+                  useradd -m -d /home/$username -s /bin/bash -u $((USER_UID++)) $username
+                  mkdir -p /home/$username/.ssh
+                  cp "$i" /home/$username/.ssh/authorized_keys
+                  chown -R $username:$username /home/$username
+                  chmod 700 /home/$username/.ssh
+                  chmod 600 /home/$username/.ssh/authorized_keys
                 fi
               done
 
@@ -110,7 +114,7 @@ spec:
       - name: users
         secret:
           secretName: {{ .Release.Name }}-users
-          defaultMode: 0600
+          defaultMode: 0644
       - name: sshd-configs
         configMap:
           name: {{ .Release.Name }}-etc-ssh
