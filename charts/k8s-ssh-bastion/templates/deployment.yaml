@@ -62,9 +62,15 @@ spec:
           lifecycle: {{ .Values.lifecycle | toJson }}
           resources: {{ .Values.resources | toJson }}
           ports:
-            - name: ssh
-              containerPort: 1022
+            - name: bastion-ssh
+              containerPort: 10022
               protocol: TCP
+          {{- with .Values.probes }}
+          livenessProbe:
+            {{- toYaml .livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .readinessProbe | nindent 12 }}
+          {{- end }}
           volumeMounts:
           - name: users
             mountPath: /etc/ssh/authorized_keys

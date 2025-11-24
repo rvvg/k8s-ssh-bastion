@@ -11,12 +11,12 @@ spec:
   type: {{ .Values.service.type }}
   externalTrafficPolicy: Local
   ports:
-    - port: 22
-      targetPort: ssh
+    - port: 10022
+      targetPort: bastion-ssh
       protocol: TCP
 {{- with .Values.service.nodePort }}
       nodePort: {{ . }}
 {{- end }}
-      name: ssh
+      name: bastion-ssh
   selector:
     app.kubernetes.io/instance: {{ .Release.Name }}
