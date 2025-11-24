@@ -12,6 +12,18 @@ service:
   type: NodePort
   nodePort: 30022
 
+probes:
+  livenessProbe:
+    tcpSocket:
+      port: 10022
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    tcpSocket:
+      port: 10022
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
 resources:
   requests:
     cpu: 10m
@@ -79,7 +91,7 @@ ssh:
   sshd_config: |
     Include /etc/ssh/sshd_config.d/*.conf
 
-    Port 1022
+    Port 10022
 
     #LoginGraceTime 2m
     #PermitRootLogin prohibit-password
