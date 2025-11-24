@@ -86,6 +86,7 @@ initscripts: {}
 ssh:
   banner: |
     Welcome to k8s-ssh-bastion
+    Home: https://github.com/rvvg/k8s-ssh-bastion
     image: {{ .Chart.AppVersion }}
     chart: {{ .Chart.Version }}
   sshd_config: |
@@ -144,5 +145,5 @@ ssh:
     # Allow client to pass locale environment variables
     AcceptEnv LANG LC_*
 
-    # override default of no subsystems
-    Subsystem       sftp    /usr/lib/openssh/sftp-server
+    # Disable sftp subsystem
+    Subsystem sftp /bin/echo "sftp not available"

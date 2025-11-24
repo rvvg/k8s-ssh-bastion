@@ -5,7 +5,7 @@ A lightweight, secure SSH bastion for Kubernetes, designed to provide SSH access
 ## Features
 
 -   **Standard Base Image**: Uses the official `ubuntu:24.04` image.
--   **Runtime Installation**: Installs `openssh-server` and `zsh` at pod startup, ensuring latest security updates.
+-   **Runtime Installation**: Installs `openssh-server` at pod startup, ensuring latest security updates.
 -   **Persistent Host Keys**: Supports providing your own host keys or automatically generating them via Helm (persisted across upgrades).
 -   **User Management**: easily manage users and their public keys via Helm values.
 -   **Secure Defaults**: configured with security best practices (no password auth, no root login by default).
