@@ -1,13 +1,14 @@
 image:
-  repository: ghcr.io/nefelim4ag/k8s-ssh-bastion
-  tag: "{{ .Chart.AppVersion }}"
+  repository: ubuntu
+  tag: "24.04"
   pullPolicy: IfNotPresent
   imagePullSecrets: []
 
 replicaCount: 1
 
 service:
-  annotations: {}
+  annotations:
+    # external-dns.alpha.kubernetes.io/hostname: bastion.example.com
   type: NodePort
   nodePort: 30022
 
@@ -17,10 +18,20 @@ resources:
     memory: 32Mi
 
 users: {}
-#  nefelim4ag: |
+#  bob: |
 #    ssh-rsa ... comment
 
-## Pod Disruption Budget configuration in distributed mode.
+## Host keys to use. If not provided, they will be generated on startup (ephemeral).
+## Format:
+## hostKeys:
+##   rsa: |
+##     -----BEGIN OPENSSH PRIVATE KEY-----
+##     ...
+##     -----END OPENSSH PRIVATE KEY-----
+##   ecdsa: ...
+##   ed25519: ...
+hostKeys: {}
+
 ## @param pdb.minAvaliable how many pods must be available to proceed with deployment
 ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
 ##
@@ -77,7 +88,7 @@ ssh:
     #MaxSessions 10
 
     PubkeyAuthentication yes
-    AuthorizedKeysFile     .ssh/authorized_keys
+    AuthorizedKeysFile     /etc/ssh/authorized_keys/%u
 
     PasswordAuthentication no
     PermitEmptyPasswords no

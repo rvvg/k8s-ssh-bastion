@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: {{ "${{ github.repository }}" }}
+
+jobs:
+  helm-package-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Log in to GHCR (Helm)
+        run: |
+          echo {{ "${{ secrets.GITHUB_TOKEN }}" }} | helm registry login {{ "${{ env.REGISTRY }}" }} --username {{ "${{ github.actor }}" }} --password-stdin
+
+      - name: Package Helm Chart
+        run: |
+          helm package .
+
+      - name: Push Helm Chart
+        if: github.event_name != 'pull_request'
+        run: |
+          helm push k8s-ssh-bastion-*.tgz oci://{{ "${{ env.REGISTRY }}/${{ github.repository_owner }}" }}/charts

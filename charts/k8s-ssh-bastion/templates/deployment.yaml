@@ -23,21 +23,23 @@ spec:
             - /bin/bash
             - -ec
             - |
+              apt-get update && apt-get install -y openssh-server zsh
               cd /etc/ssh
+              
+              # Ensure public keys exist (for mounted keys)
               for ssh_key in /etc/ssh/ssh_host_*_key; do
                 if [ ! -f ${ssh_key}.pub ]; then
                   ssh-keygen -y -f ${ssh_key} > ${ssh_key}.pub
                 fi
               done
 
+              # Create users based on mounted authorized_keys
               USER_UID=1001
-              for i in /etc/users/*; do
+              for i in /etc/ssh/authorized_keys/*; do
                 if [ -f "$i" ]; then
-                  useradd -rm -d /home/${i##*/} -s /bin/bash -g root -u $((USER_UID++)) ${i##*/}
-                  mkdir -p /home/${i##*/}/.ssh
-                  install -Dm0600 $i /home/${i##*/}/.ssh/authorized_keys
-                  chmod 700 /home/${i##*/}/.ssh
-                  chown -R ${i##*/}:nogroup /home/${i##*/}
+                  username=$(basename "$i")
+                  useradd -rm -d /home/$username -s /bin/bash -g root -u $((USER_UID++)) $username
+                  chown -R $username:nogroup /home/$username
                 fi
               done
 
@@ -57,8 +59,8 @@ spec:
               containerPort: 1022
               protocol: TCP
           volumeMounts:
-          - name: config-volume
-            mountPath: /etc/users
+          - name: users
+            mountPath: /etc/ssh/authorized_keys
           - name: usr-share-initscripts
             mountPath: /usr/share/initscripts
           {{- range $key, $value := .Values.ssh }}
@@ -66,24 +68,18 @@ spec:
             mountPath: /etc/ssh/{{ $key }}
             subPath: {{ $key }}
           {{- end }}
-          - name: {{ .Release.Name }}-rsa
+          - name: host-keys
             mountPath: /etc/ssh/ssh_host_rsa_key
             subPath: ssh_host_rsa_key
-          - name: {{ .Release.Name }}-ecdsa
+            readOnly: true
+          - name: host-keys
             mountPath: /etc/ssh/ssh_host_ecdsa_key
             subPath: ssh_host_ecdsa_key
-          - name: {{ .Release.Name }}-ed25519
+            readOnly: true
+          - name: host-keys
             mountPath: /etc/ssh/ssh_host_ed25519_key
             subPath: ssh_host_ed25519_key
-          - name: {{ .Release.Name }}-rsa
-            mountPath: /etc/ssh/ssh_host_rsa_key.pub
-            subPath: ssh_host_rsa_key.pub
-          - name: {{ .Release.Name }}-ecdsa
-            mountPath: /etc/ssh/ssh_host_ecdsa_key.pub
-            subPath: ssh_host_ecdsa_key.pub
-          - name: {{ .Release.Name }}-ed25519
-            mountPath: /etc/ssh/ssh_host_ed25519_key.pub
-            subPath: ssh_host_ed25519_key.pub
+            readOnly: true
       hostNetwork: {{ .Values.hostNetwork }}
       {{- with .Values.dnsConfig }}
       dnsConfig: {{ . | toJson }}
@@ -96,9 +92,10 @@ spec:
         {{- tpl (toYaml .) $ | nindent 8 }}
 {{- end }}
       volumes:
-      - name: config-volume
-        configMap:
-          name: {{ .Release.Name }}
+      - name: users
+        secret:
+          secretName: {{ .Release.Name }}-users
+          defaultMode: 0600
       - name: sshd-configs
         configMap:
           name: {{ .Release.Name }}-etc-ssh
@@ -107,29 +104,10 @@ spec:
         configMap:
           name: {{ .Release.Name }}-usr-share-initscripts
           defaultMode: 0755
-      - name: {{ .Release.Name }}-dsa
+      - name: host-keys
         secret:
-          secretName: {{ .Release.Name }}-dsa
+          secretName: {{ .Release.Name }}-host-keys
           defaultMode: 0600
-      - name: {{ .Release.Name }}-rsa
-        secret:
-          secretName: {{ .Release.Name }}-rsa
-          defaultMode: 0600
-      - name: {{ .Release.Name }}-ecdsa
-        secret:
-          secretName: {{ .Release.Name }}-ecdsa
-          defaultMode: 0600
-      - name: {{ .Release.Name }}-ed25519
-        secret:
-          secretName: {{ .Release.Name }}-ed25519
-          defaultMode: 0600
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Release.Name }}
-data:
-{{ toYaml .Values.users | indent 4 }}
 
 ---
 apiVersion: v1
