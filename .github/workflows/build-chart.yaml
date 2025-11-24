@@ -29,7 +29,7 @@ jobs:
 
       - name: Log in to GHCR (Helm)
         run: |
-          echo {{ "${{ secrets.GITHUB_TOKEN }}" }} | helm registry login {{ "${{ env.REGISTRY }}" }} --username {{ "${{ github.actor }}" }} --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login "${{ env.REGISTRY }}" --username "${{ github.actor }}" --password-stdin
 
       - name: Package Helm Chart
         run: |
@@ -38,4 +38,4 @@ jobs:
       - name: Push Helm Chart
         if: github.event_name != 'pull_request'
         run: |
-          helm push k8s-ssh-bastion-*.tgz oci://{{ "${{ env.REGISTRY }}/${{ github.repository_owner }}" }}
+          helm push k8s-ssh-bastion-*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}
