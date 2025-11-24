@@ -1,0 +1,148 @@
+image:
+  repository: ubuntu
+  tag: "24.04"
+  pullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+replicaCount: 1
+
+service:
+  annotations:
+    # external-dns.alpha.kubernetes.io/hostname: bastion.example.com
+  type: NodePort
+  nodePort: 30022
+
+probes:
+  livenessProbe:
+    tcpSocket:
+      port: 10022
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    tcpSocket:
+      port: 10022
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+
+users: {}
+#  bob: |
+#    ssh-rsa ... comment
+
+## Host keys to use. If not provided, they will be generated on startup (ephemeral).
+## Format:
+## hostKeys:
+##   rsa: |
+##     -----BEGIN OPENSSH PRIVATE KEY-----
+##     ...
+##     -----END OPENSSH PRIVATE KEY-----
+##   ecdsa: ...
+##   ed25519: ...
+hostKeys: {}
+
+## @param pdb.minAvaliable how many pods must be available to proceed with deployment
+## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
+##
+pdb:
+  minAvailable: 50%
+
+hostNetwork: false
+dnsConfig: {}
+terminationGracePeriodSeconds: 30
+lifecycle:
+  preStop:
+    exec:
+      command:
+        - sh
+        - -c
+        - "sleep 15; kill 1"
+
+affinity: {}
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/instance: "{{ .Release.Name }}"
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/instance: "{{ .Release.Name }}"
+
+initscripts: {}
+  # install-tools.sh: |
+  #   #!/bin/bash
+  #   echo do something
+
+# Override files under /etc/ssh
+ssh:
+  banner: |
+    Welcome to k8s-ssh-bastion
+    image: {{ .Chart.AppVersion }}
+    chart: {{ .Chart.Version }}
+  sshd_config: |
+    Include /etc/ssh/sshd_config.d/*.conf
+
+    Port 10022
+
+    #LoginGraceTime 2m
+    #PermitRootLogin prohibit-password
+    #StrictModes yes
+    #MaxAuthTries 6
+    #MaxSessions 10
+
+    PubkeyAuthentication yes
+    AuthorizedKeysFile     /etc/ssh/authorized_keys/%u
+
+    PasswordAuthentication no
+    PermitEmptyPasswords no
+
+    # Change to yes to enable challenge-response passwords (beware issues with
+    # some PAM modules and threads)
+    KbdInteractiveAuthentication no
+
+    # Set this to 'yes' to enable PAM authentication, account processing,
+    # and session processing. If this is enabled, PAM authentication will
+    # be allowed through the KbdInteractiveAuthentication and
+    # PasswordAuthentication.  Depending on your PAM configuration,
+    # PAM authentication via KbdInteractiveAuthentication may bypass
+    # the setting of "PermitRootLogin without-password".
+    # If you just want the PAM account and session checks to run without
+    # PAM authentication, then enable this but set PasswordAuthentication
+    # and KbdInteractiveAuthentication to 'no'.
+    UsePAM yes
+
+    AllowAgentForwarding yes
+    AllowTcpForwarding yes
+    GatewayPorts no
+    X11Forwarding no
+    #PermitTTY yes
+    PrintMotd no
+    #PrintLastLog yes
+    TCPKeepAlive yes
+    #PermitUserEnvironment no
+    #Compression delayed
+    #ClientAliveInterval 0
+    #ClientAliveCountMax 3
+    #UseDNS no
+    PidFile /run/sshd.pid
+    #MaxStartups 10:30:100
+    #PermitTunnel no
+    #ChrootDirectory none
+    #VersionAddendum none
+
+    Banner /etc/ssh/banner
+
+    # Allow client to pass locale environment variables
+    AcceptEnv LANG LC_*
+
+    # override default of no subsystems
+    Subsystem       sftp    /usr/lib/openssh/sftp-server
