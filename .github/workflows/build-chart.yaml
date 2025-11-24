@@ -11,6 +11,10 @@ on:
 env:
   REGISTRY: ghcr.io
 
+defaults:
+  run:
+    working-directory: ./charts/k8s-ssh-bastion
+
 jobs:
   helm-package-push:
     runs-on: ubuntu-latest
