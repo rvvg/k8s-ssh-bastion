@@ -16,12 +16,12 @@ probes:
   livenessProbe:
     tcpSocket:
       port: 10022
-    initialDelaySeconds: 5
+    initialDelaySeconds: 30
     periodSeconds: 10
   readinessProbe:
     tcpSocket:
       port: 10022
-    initialDelaySeconds: 5
+    initialDelaySeconds: 30
     periodSeconds: 10
 
 resources:
