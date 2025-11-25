@@ -20,14 +20,11 @@ spec:
           image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag $ }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - /bin/bash
+
+            - /bin/sh
             - -ec
             - |
-              export DEBIAN_FRONTEND=noninteractive
-              apt-get update && apt-get install \
-                -o Dpkg::Options::="--force-confdef" \
-                -o Dpkg::Options::="--force-confold" \
-                -y --no-install-recommends openssh-server
+              apk add --no-cache openssh openssh-server-pam bash shadow
               cd /etc/ssh
               
               # Generate missing keys (ephemeral, e.g. Ed25519 which Helm cannot generate correctly)
@@ -62,7 +59,7 @@ spec:
               {{- end }}
               {{- end }}
 
-              /usr/sbin/sshd -D -e -E /proc/1/fd/1
+              /usr/sbin/sshd.pam -D -e -E /proc/1/fd/1
           lifecycle: {{ .Values.lifecycle | toJson }}
           resources: {{ .Values.resources | toJson }}
           ports:

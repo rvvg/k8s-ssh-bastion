@@ -4,7 +4,7 @@ A lightweight, secure SSH bastion for Kubernetes, designed to provide SSH access
 
 ## Features
 
--   **Standard Base Image**: Uses the official `ubuntu:24.04` image.
+-   **Standard Base Image**: Uses the official `alpine:3.22` image.
 -   **Runtime Installation**: Installs `openssh-server` at pod startup, ensuring latest security updates.
 -   **Persistent Host Keys**: Supports providing your own host keys or automatically generating them via Helm (persisted across upgrades).
 -   **User Management**: easily manage users and their public keys via Helm values.
@@ -75,8 +75,8 @@ service:
 
 | Key | Description | Default |
 |-----|-------------|---------|
-| `image.repository` | Image repository | `ubuntu` |
-| `image.tag` | Image tag | `24.04` |
+| `image.repository` | Image repository | `alpine` |
+| `image.tag` | Image tag | `3.22` |
 | `replicaCount` | Number of replicas | `1` |
 | `service.type` | Service type | `NodePort` |
 | `service.nodePort` | Node port (if type is NodePort) | `30022` |
@@ -86,9 +86,9 @@ service:
 
 ## Architecture
 
-This chart deploys a Deployment using the standard `ubuntu:24.04` image.
+This chart deploys a Deployment using the standard `alpine:3.22` image.
 Upon startup, the pod executes an entrypoint script that:
-1.  Installs `openssh-server` and `zsh` via `apt-get`.
+1.  Installs `openssh-server` and `bash` via `apk`.
 2.  Generates ephemeral host keys if they are not provided via Secret.
 3.  Creates user accounts based on the provided `users` configuration.
 4.  Starts `sshd`.

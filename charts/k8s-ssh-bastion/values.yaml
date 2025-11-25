@@ -1,6 +1,6 @@
 image:
-  repository: ubuntu
-  tag: "24.04"
+  repository: alpine
+  tag: "3.22"
   pullPolicy: IfNotPresent
   imagePullSecrets: []
 
@@ -16,12 +16,12 @@ probes:
   livenessProbe:
     tcpSocket:
       port: 10022
-    initialDelaySeconds: 30
+    initialDelaySeconds: 10
     periodSeconds: 10
   readinessProbe:
     tcpSocket:
       port: 10022
-    initialDelaySeconds: 30
+    initialDelaySeconds: 10
     periodSeconds: 10
 
 resources:
