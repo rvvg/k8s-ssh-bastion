@@ -2,7 +2,7 @@ apiVersion: v2
 name: k8s-ssh-bastion
 description: A lightweight, secure SSH bastion for Kubernetes
 type: application
-version: 0.6.0
+version: 0.6.1
 appVersion: "24.04"
 keywords:
   - ssh
@@ -13,6 +13,7 @@ keywords:
 home: https://github.com/rvvg/k8s-ssh-bastion
 sources:
   - https://github.com/rvvg/k8s-ssh-bastion
+  - https://github.com/nefelim4ag/k8s-ssh-bastion
 maintainers:
   - name: rvvg
     url: https://github.com/rvvg

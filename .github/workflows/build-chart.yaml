@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Helm
         uses: azure/setup-helm@v4
@@ -35,11 +37,9 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login "${{ env.REGISTRY }}" --username "${{ github.actor }}" --password-stdin
 
-      - name: Package Helm Chart
-        run: |
-          helm package .
-
-      - name: Push Helm Chart
-        if: github.event_name != 'pull_request'
-        run: |
-          helm push k8s-ssh-bastion-*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.4.0
+        with:
+          charts_dir: charts
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
