@@ -19,7 +19,7 @@ jobs:
   helm-package-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -33,12 +33,8 @@ jobs:
         with:
           version: v3.14.0
 
-      - name: Log in to GHCR (Helm)
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login "${{ env.REGISTRY }}" --username "${{ github.actor }}" --password-stdin
-
       - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.4.0
+        uses: helm/chart-releaser-action@v1.6.0
         with:
           charts_dir: charts
         env:
