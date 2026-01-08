@@ -6,6 +6,30 @@ image:
 
 replicaCount: 1
 
+# service:
+#   # Primary service type: "NodePort" (default) or "LoadBalancer"
+#   # - If you only need NodePort (and the external network already routes traffic to the nodes), keep NodePort.
+#   # - If you want Kubernetes to provision a cloud Load Balancer automatically, set type: LoadBalancer.
+#   type: NodePort
+#
+#   # Explicit nodePort, if a fixed port on the nodes is required
+#   nodePort: 31022
+#
+#   # Common annotations for the primary service
+#   annotations: {}
+#
+#   # If true and the primary type != LoadBalancer, an additional <release>-lb service
+#   # of type LoadBalancer will be created
+#   createLoadBalancer: true
+#
+#   loadBalancer:
+#     # Annotations applied to the LoadBalancer service (merged with service.annotations).
+#     # For an internal L4 load balancer (ILB) in GKE, typically:
+#     cloud.google.com/load-balancer-type: "Internal"
+#     # If a specific reserved static IP is required, specify it here
+#     # (after allocating the IP in GCP):
+#     loadBalancerIP: ""
+
 service:
   annotations:
     # external-dns.alpha.kubernetes.io/hostname: bastion.example.com
