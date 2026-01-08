@@ -11,9 +11,9 @@ metadata:
 {{- $base = merge $base .Values.service.loadBalancer.annotations }}
 {{- end }}
 {{- if gt (len $base) 0 }}
-{{ toYaml $base | indent 2 }}
+{{ toYaml $base | indent 4 }}
 {{- else }}
-  {}
+    {}
 {{- end }}
   labels:
     app: {{ $.Release.Name }}
@@ -46,9 +46,9 @@ metadata:
 {{- $lbann = merge $lbann .Values.service.loadBalancer.annotations }}
 {{- end }}
 {{- if gt (len $lbann) 0 }}
-{{ toYaml $lbann | indent 2 }}
+{{ toYaml $lbann | indent 4 }}
 {{- else }}
-  {}
+    {}
 {{- end }}
   labels:
     app: {{ $.Release.Name }}
