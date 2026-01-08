@@ -1,9 +1,20 @@
----
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}
-  annotations: {{ .Values.service.annotations | toJson }}
+  annotations:
+{{- $base := dict }}
+{{- if .Values.service.annotations }}
+{{- $base = merge $base .Values.service.annotations }}
+{{- end }}
+{{- if and (eq .Values.service.type "LoadBalancer") .Values.service.loadBalancer.annotations }}
+{{- $base = merge $base .Values.service.loadBalancer.annotations }}
+{{- end }}
+{{- if gt (len $base) 0 }}
+{{ toYaml $base | indent 2 }}
+{{- else }}
+  {}
+{{- end }}
   labels:
     app: {{ $.Release.Name }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
@@ -20,3 +31,39 @@ spec:
       name: bastion-ssh
   selector:
     app.kubernetes.io/instance: {{ .Release.Name }}
+---
+{{- if and .Values.service.createLoadBalancer (ne .Values.service.type "LoadBalancer") }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-lb" .Release.Name }}
+  annotations:
+{{- $lbann := dict }}
+{{- if .Values.service.annotations }}
+{{- $lbann = merge $lbann .Values.service.annotations }}
+{{- end }}
+{{- if .Values.service.loadBalancer.annotations }}
+{{- $lbann = merge $lbann .Values.service.loadBalancer.annotations }}
+{{- end }}
+{{- if gt (len $lbann) 0 }}
+{{ toYaml $lbann | indent 2 }}
+{{- else }}
+  {}
+{{- end }}
+  labels:
+    app: {{ $.Release.Name }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+{{- with .Values.service.loadBalancer.loadBalancerIP }}
+  loadBalancerIP: {{ . }}
+{{- end }}
+  ports:
+    - port: 10022
+      targetPort: bastion-ssh
+      protocol: TCP
+      name: bastion-ssh
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
