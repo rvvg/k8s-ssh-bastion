@@ -7,8 +7,12 @@ metadata:
 {{- if .Values.service.annotations }}
 {{- $base = merge $base .Values.service.annotations }}
 {{- end }}
-{{- if and (eq .Values.service.type "LoadBalancer") .Values.service.loadBalancer.annotations }}
+{{- if eq .Values.service.type "LoadBalancer" }}
+{{- if .Values.service.loadBalancer }}
+{{- if .Values.service.loadBalancer.annotations }}
 {{- $base = merge $base .Values.service.loadBalancer.annotations }}
+{{- end }}
+{{- end }}
 {{- end }}
 {{- if gt (len $base) 0 }}
 {{ toYaml $base | indent 4 }}
@@ -42,8 +46,10 @@ metadata:
 {{- if .Values.service.annotations }}
 {{- $lbann = merge $lbann .Values.service.annotations }}
 {{- end }}
+{{- if .Values.service.loadBalancer }}
 {{- if .Values.service.loadBalancer.annotations }}
 {{- $lbann = merge $lbann .Values.service.loadBalancer.annotations }}
+{{- end }}
 {{- end }}
 {{- if gt (len $lbann) 0 }}
 {{ toYaml $lbann | indent 4 }}
@@ -56,8 +62,10 @@ metadata:
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
-{{- with .Values.service.loadBalancer.loadBalancerIP }}
+{{- with .Values.service.loadBalancer }}
+{{- with .loadBalancerIP }}
   loadBalancerIP: {{ . }}
+{{- end }}
 {{- end }}
   ports:
     - port: 10022
