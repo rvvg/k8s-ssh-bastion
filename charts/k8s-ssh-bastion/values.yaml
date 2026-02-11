@@ -35,6 +35,7 @@ service:
     # external-dns.alpha.kubernetes.io/hostname: bastion.example.com
   type: NodePort
   nodePort: 30022
+  externalTrafficPolicy: Local
 
 probes:
   livenessProbe:
@@ -102,9 +103,9 @@ topologySpreadConstraints:
         app.kubernetes.io/instance: "{{ .Release.Name }}"
 
 initscripts: {}
-  # install-tools.sh: |
-  #   #!/bin/bash
-  #   echo do something
+   # install-tools.sh: |
+   #   #!/bin/bash
+   #   echo do something
 
 # Override files under /etc/ssh
 ssh:
@@ -135,8 +136,8 @@ ssh:
     KbdInteractiveAuthentication no
 
     # Set this to 'yes' to enable PAM authentication, account processing,
-    # and session processing. If this is enabled, PAM authentication will
-    # be allowed through the KbdInteractiveAuthentication and
+    # and session processing. If this is enabled, PAM authentication will be
+    # allowed through the KbdInteractiveAuthentication and
     # PasswordAuthentication.  Depending on your PAM configuration,
     # PAM authentication via KbdInteractiveAuthentication may bypass
     # the setting of "PermitRootLogin without-password".
