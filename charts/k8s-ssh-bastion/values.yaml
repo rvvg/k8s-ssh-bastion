@@ -58,6 +58,8 @@ users: {}
 #  bob: |
 #    ssh-rsa ... comment
 
+allowedIPRanges: []
+
 ## Host keys to use. If not provided, they will be generated on startup (ephemeral).
 ## Format:
 ## hostKeys:
@@ -118,6 +120,7 @@ ssh:
     Include /etc/ssh/sshd_config.d/*.conf
 
     Port 10022
+    LogLevel VERBOSE
 
     #LoginGraceTime 2m
     #PermitRootLogin prohibit-password
@@ -172,3 +175,10 @@ ssh:
 
     # Disable sftp subsystem
     Subsystem sftp /bin/echo "sftp not available"
+
+    AllowGroups sshusers
+
+    {{- if .Values.allowedIPRanges }}
+    Match Group sshusers
+        AllowUsers {{ range .Values.allowedIPRanges }}*@{{ . }} {{ end }}
+    {{- end }}

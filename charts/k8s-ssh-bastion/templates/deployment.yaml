@@ -12,6 +12,8 @@ spec:
     metadata:
       annotations:
         checksum/users: {{ toJson .Values.users | sha256sum }}
+        checksum/ssh: {{ toJson .Values.ssh | sha256sum }}
+        checksum/allowedIPRanges: {{ toJson .Values.allowedIPRanges | sha256sum }}
       labels:
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
@@ -38,11 +40,12 @@ spec:
               done
 
               # Create users based on mounted authorized_keys
+              groupadd sshusers
               USER_UID=1001
               for i in /etc/ssh/authorized_keys/*; do
                 if [ -f "$i" ]; then
                   username=$(basename "$i")
-                  useradd -m -d /home/$username -s /bin/bash -u $((USER_UID++)) $username
+                  useradd -m -d /home/$username -s /bin/bash -u $((USER_UID++)) -G sshusers $username
                   mkdir -p /home/$username/.ssh
                   cp "$i" /home/$username/.ssh/authorized_keys
                   chown -R $username:$username /home/$username

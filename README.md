@@ -5,10 +5,11 @@ A lightweight, secure SSH bastion for Kubernetes, designed to provide SSH access
 ## Features
 
 -   **Standard Base Image**: Uses the official `alpine:3.22` image.
--   **Runtime Installation**: Installs `openssh-server` and `bash` at pod startup, ensuring latest security updates.
--   **Persistent Host Keys**: Supports providing your own host keys or automatically generating them via Helm (persisted across upgrades).
--   **User Management**: easily manage users and their public keys via Helm values.
--   **Secure Defaults**: configured with security best practices (no password auth, no root login by default).
+-   **Runtime Installation**: Installs `openssh-server`, `bash`, and `shadow` at pod startup, ensuring latest security updates.
+-   **Load Balancer Support**: Can automatically create an additional `LoadBalancer` service or configure the main service as one.
+-   **Security**: Supports restricting access by IP ranges and disabling password authentication.
+-   **High Availability**: Configurable PodDisruptionBudget, replicas, and TopologySpreadConstraints.
+-   **Customizable**: Supports custom init scripts and full `sshd_config` overrides.
 
 ## Prerequisites
 
@@ -34,12 +35,57 @@ helm install bastion k8s-ssh-bastion/k8s-ssh-bastion
 
 ### Users
 
-Add users and their public keys in `values.yaml`. The keys will be mounted to `/etc/ssh/authorized_keys/<username>`.
+Add users and their public keys in `values.yaml`. Users are created at startup and keys are placed in `~/.ssh/authorized_keys`.
 
 ```yaml
 users:
-  alice: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ..."
-  bob: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA..."
+  alice: "ssh-rsa AAAAB3NzaC1yc2E..."
+  bob: |
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...
+    ssh-rsa AAAAB3NzaC1yc2E...
+```
+
+### IP Whitelisting
+
+Restrict SSH access to specific IP ranges:
+
+```yaml
+allowedIPRanges:
+  - 1.2.3.4/32
+  - 10.0.0.0/8
+```
+
+### Load Balancer
+
+You can configure the main service as a `LoadBalancer` or create an additional one:
+
+```yaml
+service:
+  type: LoadBalancer
+  annotations:
+    cloud.google.com/load-balancer-type: "Internal"
+```
+
+Or keep `NodePort` for the main service and create a secondary `LoadBalancer`:
+
+```yaml
+service:
+  type: NodePort
+  createLoadBalancer: true
+  loadBalancer:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+```
+
+### Init Scripts
+
+Run custom commands before starting `sshd`:
+
+```yaml
+initscripts:
+  install-tools.sh: |
+    #!/bin/bash
+    apk add --no-cache curl jq
 ```
 
 ### Host Keys
@@ -78,19 +124,27 @@ service:
 | `image.repository` | Image repository | `alpine` |
 | `image.tag` | Image tag | `3.22` |
 | `replicaCount` | Number of replicas | `1` |
-| `service.type` | Service type | `NodePort` |
+| `service.type` | Service type (`NodePort`, `LoadBalancer`) | `NodePort` |
 | `service.nodePort` | Node port (if type is NodePort) | `30022` |
+| `service.createLoadBalancer` | Create an additional LoadBalancer service | `true` |
+| `service.annotations` | Annotations for the service | `{}` |
+| `allowedIPRanges` | List of CIDRs allowed to connect | `[]` |
 | `users` | Map of usernames to public keys | `{}` |
 | `hostKeys` | Map of host keys (rsa, ecdsa, ed25519) | `{}` |
+| `pdb.minAvailable` | PodDisruptionBudget configuration | `50%` |
+| `initscripts` | Map of script names to content | `{}` |
 | `ssh.sshd_config` | Custom sshd_config content | (see values.yaml) |
+| `ssh.banner` | SSH login banner content | (see values.yaml) |
+| `topologySpreadConstraints` | Topology spread constraints | (configured for HA) |
 
 ## Architecture
 
-This chart deploys a Deployment using the standard `alpine:3.22` image.
+This chart deploys a Deployment using the standard `alpine` image.
 Upon startup, the pod executes an entrypoint script that:
-1.  Installs `openssh-server` and `bash` via `apk`.
-2.  Generates ephemeral host keys if they are not provided via Secret.
-3.  Creates user accounts based on the provided `users` configuration.
-4.  Starts `sshd`.
+1.  Installs `openssh-server`, `bash`, `shadow`, and `openssh-server-pam` via `apk`.
+2.  Generates host keys if they are not provided via Secret.
+3.  Creates user accounts and configures `.ssh/authorized_keys` based on the `users` value.
+4.  Runs any provided `initscripts`.
+5.  Starts `sshd` on port `10022`.
 
 This approach ensures the container always has the latest packages and removes the need for maintaining a custom Docker image.
