@@ -3,6 +3,29 @@ entries:
   k8s-ssh-bastion:
   - apiVersion: v2
     appVersion: "3.22"
+    created: "2026-02-18T08:32:36.043701801Z"
+    description: A lightweight, secure SSH bastion for Kubernetes
+    digest: d7e893a847655ec14f7f7eb69750505462f41491e7bed60c64afa1d69338e17e
+    home: https://github.com/rvvg/k8s-ssh-bastion
+    keywords:
+    - ssh
+    - bastion
+    - security
+    - access
+    - jump-host
+    maintainers:
+    - name: rvvg
+      url: https://github.com/rvvg
+    name: k8s-ssh-bastion
+    sources:
+    - https://github.com/rvvg/k8s-ssh-bastion
+    - https://github.com/nefelim4ag/k8s-ssh-bastion
+    type: application
+    urls:
+    - https://github.com/rvvg/k8s-ssh-bastion/releases/download/k8s-ssh-bastion-0.7.4/k8s-ssh-bastion-0.7.4.tgz
+    version: 0.7.4
+  - apiVersion: v2
+    appVersion: "3.22"
     created: "2026-02-11T18:54:48.196448642Z"
     description: A lightweight, secure SSH bastion for Kubernetes
     digest: 4ef6a173d887b6b7d65072c117abb7ffa0b315937c8fffdc2738404f31c17203
@@ -116,4 +139,4 @@ entries:
     urls:
     - https://github.com/rvvg/k8s-ssh-bastion/releases/download/k8s-ssh-bastion-0.6.3/k8s-ssh-bastion-0.6.3.tgz
     version: 0.6.3
-generated: "2026-02-11T18:54:48.196472166Z"
+generated: "2026-02-18T08:32:36.043726657Z"
