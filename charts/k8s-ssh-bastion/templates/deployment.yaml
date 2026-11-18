@@ -26,7 +26,7 @@ spec:
             - /bin/sh
             - -ec
             - |
-              apk add --no-cache openssh openssh-server-pam bash shadow
+              apk add --no-cache openssh openssh-server-pam bash shadow curl
               cd /etc/ssh
               
               # Generate missing keys (ephemeral, e.g. Ed25519 which Helm cannot generate correctly)
